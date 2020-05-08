@@ -7,6 +7,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,13 +26,19 @@ public class Servidor {
         ServerSocket serverSocket = new ServerSocket(4545);
         //O serviço fica indefinidamente recebendo conexões
         while (true) {
-            //Espera por conexões de clientes
-            System.out.println("Esperando conexões ...");
-            Socket socket = serverSocket.accept();
-            System.out.println("Recebendo conexão de "+socket.toString());
-            Cliente novoCliente = new Cliente(socket, this);
-            clientes.add(novoCliente);
-            novoCliente.start();
+            try{
+                //Espera por conexões de clientes
+                System.out.println("Esperando conexões ...");
+                Socket socket = serverSocket.accept();
+                System.out.println("Recebendo conexão de "+socket.toString());
+                Cliente novoCliente = new Cliente(socket, this);
+                clientes.add(novoCliente);
+                novoCliente.start();
+                System.out.println(clientes.toString());
+            }
+            catch (SocketException ex) {
+                System.out.println("Socket fechado");
+            }
         }
     }
 
@@ -46,6 +53,7 @@ public class Servidor {
         try {
             for (int i = 0; i < clientes.size(); i++) {
                 Cliente cliente = (Cliente)clientes.get(i);
+                if (!cliente.getSocket().isClosed()) System.out.println("/-/-/-/-/-/- Socket fechado: "+ socketString(cliente.getSocket()));
                 if (!cliente.ehIgual(socket)) {
                     cliente.enviaMensagem(mensagem);
                     System.out.println("Enviando msg de "+ socketString(socket) +" para "+socketString(cliente.getSocket()));
@@ -54,13 +62,13 @@ public class Servidor {
                     System.out.println("NÃO enviando msg de "+ socketString(socket) +" para "+socketString(cliente.getSocket()));
                 
             }
-        }
+        }        
         catch (IOException ioe) {
             
         }
     }
     
-    public void removeCliente (Socket cliente) {
+    public void removeCliente (Cliente cliente) {
         clientes.remove(cliente);
     }
     

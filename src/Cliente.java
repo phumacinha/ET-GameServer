@@ -8,6 +8,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -52,15 +55,24 @@ public class Cliente extends Thread {
 
     @Override
     public void run() {
-        try {
+        try {    
             while (true) {
-                String mensagem = in.readUTF();
-                System.out.println("Recebendo mensagem:["+mensagem+"]");
-                main.transmiteMensagem(mensagem, socket);
+                    String mensagem = in.readUTF();
+                    System.out.println("Recebendo mensagem:["+mensagem+"]");
+                    main.transmiteMensagem(mensagem, socket);
             }
-        } catch (IOException ex) {
-            main.removeCliente(socket);
-            main.transmiteMensagem("Connection closed: " + socket.toString(), socket);
+        }
+        catch (IOException e) {
+            try {
+                System.out.println("-> Socket fechado: "+socket.toString());
+                main.removeCliente(this);
+
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socket.close();
+            } catch (IOException ex) {
+
+            }
         }
     }
 }
