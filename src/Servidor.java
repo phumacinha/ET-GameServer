@@ -18,12 +18,19 @@ import java.util.List;
 public class Servidor {
 
     private final List clientes;
+    private ServerSocket serverSocket;
 
     public Servidor() throws IOException {
         //Criando Lista de Clientes
         clientes = new ArrayList();
+        
         //Cria um Socket na porta 4545
-        ServerSocket serverSocket = new ServerSocket(4545);
+        serverSocket = new ServerSocket(4545);
+        
+        iniciaServidor();
+    }
+    
+    private void iniciaServidor () {
         //O serviço fica indefinidamente recebendo conexões
         while (true) {
             try{
@@ -31,12 +38,26 @@ public class Servidor {
                 System.out.println("Esperando conexões ...");
                 Socket socket = serverSocket.accept();
                 System.out.println("Recebendo conexão de "+socket.toString());
-                Cliente novoCliente = new Cliente(socket, this);
-                clientes.add(novoCliente);
-                novoCliente.start();
-                System.out.println(clientes.toString());
+                
+                if (clientes.size() < 2) {
+                    Cliente novoCliente = new Cliente(socket, this);
+                    clientes.add(novoCliente);
+                    novoCliente.start();
+                    
+                    novoCliente.enviaMensagem("procurando_adversario");
+                    
+                    if (clientes.size() == 2) {
+                        Thread.sleep(1000);
+                        transmiteMensagem("adversario_encontrado", socket);
+                        novoCliente.enviaMensagem("adversario_encontrado");
+                    }
+                }
+                else {
+                    socket.close();
+                }
+                
             }
-            catch (SocketException ex) {
+            catch (IOException | InterruptedException ex) {
                 System.out.println("Socket fechado");
             }
         }
@@ -47,6 +68,10 @@ public class Servidor {
             Cliente cliente = (Cliente)clientes.get(i);
             cliente.enviaMensagem(mensagem);
         }
+    }
+    
+    public void transmiteMensagemGeral(String mensagem) {
+        transmiteMensagem(mensagem, null);
     }
     
     public void transmiteMensagem(String mensagem, Socket socket) {
