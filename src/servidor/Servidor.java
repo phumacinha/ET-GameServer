@@ -6,32 +6,36 @@ package servidor;
  */
 
 
+import salas.Sala;
+import AnalisadorDeMensagem.AnalisadorDeMensagem;
+import MensagemSocket.Acao;
+import MensagemSocket.MensagemParaCliente;
+import MensagemSocket.MensagemParaServidor;
 import cliente.Cliente;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 import jogos.Jogo;
 import jogos.JogoDaVelha;
+import jogos.TipoDeJogo;
+import salas.Sala_JogoDaVelha;
 
 /**
  *
  * @author raphael
  */
-public class Servidor {
+public class Servidor implements AnalisadorDeMensagem {
 
-    private final List clientes;
-    private final List salaDeEspera;
-    private ServerSocket serverSocket;
+    private final ArrayList<Cliente> clientes;
+    private final ArrayList<Cliente> salaDeEspera;
+    private final ServerSocket serverSocket;
 
     public Servidor() throws IOException {
         serverSocket = new ServerSocket(4545);
         
-        clientes = new ArrayList();
-        salaDeEspera = new ArrayList();
+        clientes = new ArrayList<>();
+        salaDeEspera = new ArrayList<>();
         
         iniciaServidor();
     }
@@ -48,7 +52,10 @@ public class Servidor {
                 Cliente novoCliente = new Cliente(socket, this);
                 clientes.add(novoCliente);
                 novoCliente.start();
-                procuraSala(novoCliente);
+                boolean salaEncontrada = procuraSala(novoCliente);
+                while(!salaEncontrada) {
+                    salaEncontrada = procuraSala(novoCliente);
+                }
             }
             catch (IOException ex) {
                 System.out.println("Socket fechado");
@@ -62,30 +69,39 @@ public class Servidor {
      * @throws IOException Exceção pode ser lançada no envio da mensagem
      * ao cliente.
      */
-    private void procuraSala (Cliente cliente) throws IOException {
-        cliente.enviaMensagem("procurando-sala");
+    private boolean procuraSala (Cliente cliente) {
+        transmiteMensagem(cliente, new MensagemParaCliente(Acao.PROCURANDO_SALA));
+        
+        boolean sucesso;
         
         if (salaDeEspera.size() > 0) {
-            Cliente adversario = (Cliente) salaDeEspera.get(0);
+            Cliente adversario = salaDeEspera.get(0);
             salaDeEspera.remove(0);
             
             Sala sala = adversario.getSala();
-            cliente.setSala(sala);
-            sala.inserirCliente(cliente);
+            sucesso = sala.inserirCliente(cliente);
             
-            transmiteMensagem("sala-encontrada", sala.getJogadores());
+            if (!sucesso && !sala.estaCheia())
+                salaDeEspera.add(0, adversario);
+            else {
+                transmiteMensagem(sala, new MensagemParaCliente(Acao.SALA_ENCONTRADA)); 
+                sala.iniciarJogo();
+            }
         }
         else {
             Jogo jogo = new JogoDaVelha();
-            Sala sala = new Sala(jogo);
-            
+            Sala sala = new Sala_JogoDaVelha(this);
             cliente.setSala(sala);
             sala.inserirCliente(cliente);
             
             salaDeEspera.add(cliente);
+            
+            sucesso = true;
         }
         
+        return sucesso;
     }
+    
     
     /**
      * Transmite mensagem de um cliente emissor para outro cliente receptor.
@@ -93,7 +109,7 @@ public class Servidor {
      * @param emissor Cliente que está enviando a mensagem.
      * @param receptor Clientes que devem receber a mensagem.
      */
-    public void transmiteMensagem(Object mensagem, Cliente emissor, Cliente receptor) {
+    public void transmiteMensagem(Cliente receptor, MensagemParaCliente mensagem, Cliente emissor) {
         if (!receptor.equals(emissor)) {
             try { receptor.enviaMensagem(mensagem); }        
             catch (IOException ioe) {
@@ -103,14 +119,23 @@ public class Servidor {
     }
     
     /**
+     * Transmite mensagem para um cliente.
+     * @param mensagem Mensagem a ser enviada.
+     * @param receptor Cliente que deve receber a mensagem.
+     */
+    public void transmiteMensagem(Cliente receptor, MensagemParaCliente mensagem) {
+        transmiteMensagem(receptor, mensagem, null);        
+    }
+    
+    /**
      * Transmite mensagem de um emissor para um ou mais receptores diferentes do emissor.
      * @param mensagem Mensagem a ser enviada.
      * @param emissor Cliente que está enviando a mensagem.
      * @param receptores Clientes que devem receber a mensagem.
      */
-    public void transmiteMensagem(Object mensagem, Cliente emissor, List<Cliente> receptores) {
+    public void transmiteMensagem(ArrayList<Cliente> receptores, MensagemParaCliente mensagem, Cliente emissor) {
         receptores.forEach((receptor) -> {
-            transmiteMensagem(mensagem, emissor, receptor);
+            transmiteMensagem(receptor, mensagem, emissor);
         });
     }
     
@@ -119,23 +144,77 @@ public class Servidor {
      * @param mensagem Mensagem a ser enviada.
      * @param receptores Clientes que devem receber a mensagem.
      */
-    public void transmiteMensagem(Object mensagem, List<Cliente> receptores) {
-        transmiteMensagem(mensagem, null, receptores);
+    public void transmiteMensagem(ArrayList<Cliente> receptores, MensagemParaCliente mensagem) {
+        transmiteMensagem(receptores, mensagem, null);
+    }
+       
+    /**
+     * Transmite mensagem de um cliente para os demais jogadores de sua sala,
+     * desde que o emissor também esteja na sala.
+     * @param mensagem Mensagem a ser enviada.
+     * @param emissor Cliente que está enviando a mensagem.
+     * @param sala Sala onde estão os clientes que devem receber a mensagem.
+     */
+    public void transmiteMensagem(Sala sala, MensagemParaCliente mensagem, Cliente emissor) {
+        if (sala.equals(emissor.getSala()))
+            transmiteMensagem(sala.getJogadores(), mensagem, emissor);
     }
     
     /**
-     * Transmite mensagem para todos os clientes.
+     * Transmite mensagem para os clientes de uma sala.
      * @param mensagem Mensagem a ser enviada.
+     * @param sala Sala onde estão os clientes que devem receber a mensagem.
      */
-    public void transmiteMensagem(Object mensagem) {
-        transmiteMensagem(mensagem, clientes);
+    public void transmiteMensagem(Sala sala, MensagemParaCliente mensagem) {
+        transmiteMensagem(sala.getJogadores(), mensagem, null);
     }
     
-    public void removeCliente (Cliente cliente) {
-        transmiteMensagem("adversario-abandonou", cliente, cliente.getSala().getJogadores());
-        cliente.getSala().removeCliente(cliente);
-        salaDeEspera.remove(cliente);
-        clientes.remove(cliente);
+    @Override
+    public void trataMensagem(MensagemParaServidor mensagem) {
+        Cliente emissor = (Cliente) mensagem.getRemetente();
+        
+        switch (mensagem.getAcao()) {
+            // transmite para todos clientes do getServidor
+            // a mensagem a ser transmitida deve ser o parametro da mensagem recebida
+            case BROADCAST -> transmiteMensagem(clientes, mensagem.getMensagemParaCliente());
+            
+            // broadcast exclusivo: transmite para todos clientes do getServidor
+            // exceto para o cliente remetente
+            case BROADCAST_X -> transmiteMensagem(clientes, mensagem.getMensagemParaCliente(), emissor);
+            
+            // transmite para todos clientes da sala
+            // a mensagem a ser transmitida deve ser o parametro da mensagem recebida
+            case BROADCAST_SALA -> transmiteMensagem(emissor.getSala(), mensagem.getMensagemParaCliente());
+            
+            // broadcast exclusivo dentro da sala: transmite para todos clientes da sala
+            // exceto para o cliente remetente
+            case BROADCAST_X_SALA -> transmiteMensagem(emissor.getSala().getJogadores(), mensagem.getMensagemParaCliente(), emissor);
+            
+            // envia mensagem para todos os destinatarios especificados na mensagem
+            case MENSAGEM_COM_DESTINATARIO -> {
+                ArrayList<Cliente> destinatarios = (ArrayList<Cliente>) mensagem.getDestinatarios();
+                transmiteMensagem(destinatarios, mensagem.getMensagemParaCliente());
+            }
+            
+            case PROCURANDO_SALA -> {
+                TipoDeJogo tipoJogo = (TipoDeJogo) mensagem.getParametro();
+                procuraSala(emissor);
+            }
+            
+            case JOGADA -> {
+                Object parametros = mensagem.getParametro();
+                emissor.getSala().jogar(emissor, parametros);
+            }
+            
+            case ABANDONO -> {
+                emissor.getSala().abandonar(emissor);
+                salaDeEspera.remove(emissor);
+                clientes.remove(emissor);
+            }
+            default -> System.out.println("Ação inválida.");
+
+                
+        }
     }
     
     private String socketString (Socket socket) {

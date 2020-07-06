@@ -5,12 +5,14 @@ package cliente;
  * and open the template in the editor.
  */
 
+import MensagemSocket.Acao;
+import MensagemSocket.MensagemParaCliente;
+import MensagemSocket.MensagemParaServidor;
 import java.net.Socket;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
-import servidor.Sala;
+import salas.Sala;
 import servidor.Servidor;
 
 /**
@@ -54,8 +56,9 @@ public class Cliente extends Thread {
         return socket.equals(outroSocket);
     }
 
-    public void enviaMensagem(Object mensagem) throws IOException {
-        System.out.println("Enviando mensagem:["+mensagem.toString()+"]");
+    // Envia mensagem para o cliente
+    public void enviaMensagem(MensagemParaCliente mensagem) throws IOException {
+        System.out.println("> Enviando mensagem ["+mensagem+"]\n");
         out.writeObject(mensagem);
     }
 
@@ -67,16 +70,21 @@ public class Cliente extends Thread {
     @Override
     public void run() {
         try {    
+            
+            // Analisa mensagens recebidas
             while (true) {
-                    Object mensagem = in.readObject();
-                    System.out.println("Recebendo mensagem:["+mensagem+"]");
-                    server.transmiteMensagem(mensagem, this, sala.getJogadores());
+                    MensagemParaServidor mensagem = (MensagemParaServidor) in.readObject();
+                    mensagem.setRemetente(this);
+                    System.out.println("> Recebendo mensagem ["+mensagem+"]\n");
+                    server.trataMensagem(mensagem);
             }
         }
-        catch (Exception e) {
+        
+       // Cliente está desconectado
+        catch (IOException | ClassNotFoundException e) {
             try {
-                System.out.println("-> Socket fechado: "+socket.toString());
-                server.removeCliente(this);
+                System.out.println("> Socket fechado ["+socket+"]\n");
+                server.trataMensagem(new MensagemParaServidor(this, Acao.ABANDONO));
 
                 socket.shutdownInput();
                 socket.shutdownOutput();

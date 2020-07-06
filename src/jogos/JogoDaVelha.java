@@ -1,7 +1,9 @@
 package jogos;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 /**
  *
  * @author Pedro Antônio de Souza
@@ -9,110 +11,93 @@ import java.util.List;
 
 
 public final class JogoDaVelha extends Jogo {
-    private int[] tabuleiro;
+    private ArrayList<Integer> tabuleiro;
     private int jogadorAtual;
     
     public JogoDaVelha() {
-        super(2, 2);
-        inicializarJogo();
+        super("Jogo da Velha", 2, 2);
     }
     
-    public int[] getTabuleiro() {
+    public ArrayList<Integer> getTabuleiro() {
         return tabuleiro;
     }
     
-    public int getCampo(int pos) {
-        return tabuleiro[pos];
+    public Integer getCampo(int pos) {
+        return tabuleiro.get(pos);
     }
     
-    public int getTurno() {
-        return jogadorAtual;
+    private void definirJogadorInicial () {
+        jogadorAtual = new Random().nextInt(1);
     }
     
-    public void iniciarNovoJogo() {
-        tabuleiro = new int[9];
-        
-        for (int i = 0; i < 9; i++) {
-            tabuleiro[i] = 0;
-        }
-    }    
-    
-    public int definirJogadorInicial (int i) {
-        int jogador = -1;
-        /*if (new Random().nextInt(2) == 1) {
-        jogador = 1;
-        }*/
-        return jogador;
-    }
-    
-    private List<Integer> checarGanhador() {
+    private List<Integer> resultadoAtual() {
         // 8 formas de ganhar (3 horizontais, 3 verticais, 2 diagonais)
         for (int i = 1; i < 9; i++) {
-            int resultado = 0;
+            Integer resultado = null;
             
             switch (i) {
-                case 1:
-                    //primeira linha
-                    resultado = tabuleiro[0] + tabuleiro[1] + tabuleiro[2];
+                case 1: //primeira linha
+                    resultado = checaGanhador(0, 1, 2);
                     break;
-                case 2:
-                    //segunda linha
-                    resultado = tabuleiro[3] + tabuleiro[4] + tabuleiro[5];
+                case 2: //segunda linha
+                    resultado = checaGanhador(3, 4, 5);
                     break;
-                case 3:
-                    //terceira linha
-                    resultado = tabuleiro[6] + tabuleiro[7] + tabuleiro[8];
+                case 3: //terceira linha
+                    resultado = checaGanhador(6, 7, 8);
                     break;
-                case 4:
-                    //primeira coluna
-                    resultado = tabuleiro[0] + tabuleiro[3] + tabuleiro[6];
+                case 4: //primeira coluna
+                    resultado = checaGanhador(0, 3, 6);
                     break;
-                case 5:
-                    //primeira coluna
-                    resultado = tabuleiro[1] + tabuleiro[4] + tabuleiro[7];
+                case 5: //segunda coluna
+                    resultado = checaGanhador(1, 4, 7);
                     break;
-                case 6:
-                    //primeira coluna
-                    resultado = tabuleiro[2] + tabuleiro[5] + tabuleiro[8];
+                case 6: //terceira coluna
+                    resultado = checaGanhador(2, 5, 8);
                     break;
-                case 7:
-                    //diagonal principal
-                    resultado = tabuleiro[0] + tabuleiro[4] + tabuleiro[8];
+                case 7: //diagonal principal
+                    resultado = checaGanhador(0, 4, 8);
                     break;
-                case 8:
-                    //diagonal secundaria
-                    resultado = tabuleiro[2] + tabuleiro[4] + tabuleiro[6];
+                case 8: //diagonal secundaria
+                    resultado = checaGanhador(2, 4, 6);
                     break;
             }
             
-            if (resultado == 3) {
+            if (Integer.valueOf(3).equals(resultado)) {
                 //retorna que o jogador 1 venceu no caso i
-                return Arrays.asList(1, i);
+                return List.of(1, i);
             }
-            else if (resultado == -3) {
+            else if (Integer.valueOf(0).equals(resultado)) {
                 //retorna que o jogador -1 venceu no caso i
-                return Arrays.asList(-1, i);
+                return List.of(0, i);
             }
         }
         
-        if (!Arrays.asList(tabuleiro).contains(0)) {
+        if (!tabuleiro.contains(null)) {
             //retorna nenhum jogador venceu (0) e deu "velha" (-1)
-            return Arrays.asList(0, -1);
+            return List.of(0, -1);
         }
 
         //retorna nenhum jogador venceu (0) e ainda há jogadas
-        return Arrays.asList(0, 0);
+        return List.of(0, 0);
     }
     
+    private Integer checaGanhador(int campo1, int campo2, int campo3) {
+        Integer resultado = null;
+        try {
+            resultado = tabuleiro.get(campo1) + tabuleiro.get(campo2) + tabuleiro.get(campo3);
+        }
+        catch (Exception ex) {}
+        
+        return resultado;
+    }
     
     @Override
-    public Object jogar (Object param) {
+    public Object jogar (int jogador, Object param) {
         Integer campo = (Integer) param;
         
-        if (tabuleiro[campo] == 0) {
-            tabuleiro[campo] = jogadorAtual;
-            List<Integer> resultado = checarGanhador();
-            if (resultado.get(0) == 0) jogadorAtual *= -1;
+        if (tabuleiro.get(campo) == null) {
+            tabuleiro.set(campo, jogador);
+            List<Integer> resultado = resultadoAtual();
             
             return resultado;
         }
@@ -121,8 +106,17 @@ public final class JogoDaVelha extends Jogo {
     }
     
     @Override
-    protected void inicializarJogo () {
-        iniciarNovoJogo();
+    public void iniciar () {
+        tabuleiro = new ArrayList<>();
+        
+        for (int i = 0; i < 9; i++) {
+            tabuleiro.add(null);
+        }
+        definirJogadorInicial();
     }
     
+    @Override
+    public int getTurno() {
+        return jogadorAtual;
+    }
 }

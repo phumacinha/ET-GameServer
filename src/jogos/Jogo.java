@@ -1,9 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package jogos;
+
 
 /**
  *
@@ -13,8 +9,10 @@ public abstract class Jogo {
     
     private int minJogadores;
     private int maxJogadores;
+    protected String nomeDoJogo;
     
-    public Jogo (int minJogadores, int maxJogadores) {
+    public Jogo (String nomeDoJogo, int minJogadores, int maxJogadores) {
+        this.nomeDoJogo = nomeDoJogo;
         this.minJogadores = minJogadores;
         this.maxJogadores = maxJogadores;
     }
@@ -27,6 +25,11 @@ public abstract class Jogo {
         return minJogadores;
     }
     
-    public abstract Object jogar (Object param);
-    protected abstract void inicializarJogo();
+    public String getNome() {
+        return nomeDoJogo;
+    }
+    
+    public abstract Object jogar (int jogador, Object param);
+    public abstract void iniciar();
+    public abstract int getTurno();
 }
