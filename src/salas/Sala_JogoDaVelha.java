@@ -86,7 +86,7 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
             server.transmiteMensagem(this, new MensagemParaCliente(Acao.JOGADA, parametros));
             
             // Verifica se o jogo não terminou.
-            if (resultado.get(0) == 0) {
+            if (resultado.get(0) == -1) {
                 // Define jogador para próxima rodada (o metodo proximo() define
                 // e retorna o proximo jogador, alem de atualizar o turno.
                 // Caso não haja próximo jogador, finaliza o jogo.
