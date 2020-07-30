@@ -1,7 +1,6 @@
 package jogos;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 /**
@@ -67,28 +66,27 @@ public final class JogoDaVelha extends Jogo {
                 return List.of(1, i);
             }
             else if (Integer.valueOf(0).equals(resultado)) {
-                //retorna que o jogador -1 venceu no caso i
+                //retorna que o jogador 0 venceu no caso i
                 return List.of(0, i);
             }
         }
         
         if (!tabuleiro.contains(null)) {
-            //retorna nenhum jogador venceu (0) e deu "velha" (-1)
-            return List.of(0, -1);
+            //retorna nenhum jogador venceu -1 e deu "velha" -1
+            return List.of(-1, -1);
         }
 
-        //retorna nenhum jogador venceu (0) e ainda há jogadas
-        return List.of(0, 0);
+        //retorna nenhum jogador venceu 0 e ainda há jogadas
+        return List.of(-1, 0);
     }
     
     private Integer checaGanhador(int campo1, int campo2, int campo3) {
-        Integer resultado = null;
         try {
-            resultado = tabuleiro.get(campo1) + tabuleiro.get(campo2) + tabuleiro.get(campo3);
+            return tabuleiro.get(campo1) + tabuleiro.get(campo2) + tabuleiro.get(campo3);
         }
-        catch (Exception ex) {}
-        
-        return resultado;
+        catch (Exception ex) {
+            return null;
+        }
     }
     
     @Override

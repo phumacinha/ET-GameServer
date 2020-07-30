@@ -5,12 +5,9 @@
  */
 package salas;
 
-import MensagemSocket.Acao;
-import MensagemSocket.MensagemParaCliente;
 import java.util.ArrayList;
 
 import cliente.Cliente;
-import java.util.List;
 import jogos.Jogo;
 import servidor.Servidor;
 /**

@@ -52,10 +52,11 @@ public class Servidor implements AnalisadorDeMensagem {
                 Cliente novoCliente = new Cliente(socket, this);
                 clientes.add(novoCliente);
                 novoCliente.start();
-                boolean salaEncontrada = procuraSala(novoCliente);
+                transmiteMensagem(novoCliente, new MensagemParaCliente(Acao.CONECTADO));
+                /*boolean salaEncontrada = procuraSala(novoCliente);
                 while(!salaEncontrada) {
                     salaEncontrada = procuraSala(novoCliente);
-                }
+                }*/
             }
             catch (IOException ex) {
                 System.out.println("Socket fechado");

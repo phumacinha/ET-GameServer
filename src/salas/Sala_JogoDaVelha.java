@@ -8,7 +8,6 @@ package salas;
 import MensagemSocket.Acao;
 import MensagemSocket.MensagemParaCliente;
 import cliente.Cliente;
-import java.util.Iterator;
 import java.util.List;
 import jogos.JogoDaVelha;
 import servidor.Servidor;
@@ -57,7 +56,6 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
         if (flag < 1) idAtual = null;
         
         setTurno(idAtual);
-        System.out.println(">>>>" + jogadores.size() + " " + idAtual + " "+ proximo);
         return idAtual;
         
     }
