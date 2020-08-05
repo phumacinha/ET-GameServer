@@ -8,6 +8,7 @@ package salas;
 import MensagemSocket.Acao;
 import MensagemSocket.MensagemParaCliente;
 import cliente.Cliente;
+import java.util.Iterator;
 import java.util.List;
 import jogos.JogoDaVelha;
 import servidor.Servidor;
@@ -37,7 +38,8 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
     
     @Override
     public void removeCliente (Cliente cliente) {
-        jogadores.set(jogadores.indexOf(cliente), null);
+        jogadores.remove(cliente);
+        cliente.setSala(null);
         finalizarJogo();
     }
 
@@ -100,7 +102,13 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
     }
     
     @Override
-    public void abandonar(Cliente jogador) {
+    public void abandonar(Cliente emissor) {
+        server.transmiteMensagem(this, new MensagemParaCliente(Acao.ABANDONO), emissor);
         
+        jogadores.forEach(jogador -> {
+            jogador.setSala(null);
+        });
+        
+        jogadores.clear();
     }
 }

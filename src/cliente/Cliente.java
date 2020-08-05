@@ -85,7 +85,8 @@ public class Cliente extends Thread {
             try {
                 System.out.println("> Socket fechado ["+socket+"]\n");
                 server.trataMensagem(new MensagemParaServidor(this, Acao.ABANDONO));
-
+                server.removeCliente(this);
+                
                 socket.shutdownInput();
                 socket.shutdownOutput();
                 socket.close();

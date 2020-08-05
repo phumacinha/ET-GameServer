@@ -76,7 +76,5 @@ public abstract class Sala<J extends Jogo> {
     
     public abstract void jogar(Cliente jogador, Object param);
     
-    public void abandonar(Cliente jogador) {
-        
-    }
+    public abstract void abandonar(Cliente jogador);
 }

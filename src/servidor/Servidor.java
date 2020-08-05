@@ -16,9 +16,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import jogos.Jogo;
-import jogos.JogoDaVelha;
-import jogos.TipoDeJogo;
 import salas.Sala_JogoDaVelha;
 
 /**
@@ -53,10 +50,6 @@ public class Servidor implements AnalisadorDeMensagem {
                 clientes.add(novoCliente);
                 novoCliente.start();
                 transmiteMensagem(novoCliente, new MensagemParaCliente(Acao.CONECTADO));
-                /*boolean salaEncontrada = procuraSala(novoCliente);
-                while(!salaEncontrada) {
-                    salaEncontrada = procuraSala(novoCliente);
-                }*/
             }
             catch (IOException ex) {
                 System.out.println("Socket fechado");
@@ -71,10 +64,13 @@ public class Servidor implements AnalisadorDeMensagem {
      * ao cliente.
      */
     private boolean procuraSala (Cliente cliente) {
+        //Envia mensagem para o cliente informando que o servidor esta procurando
+        //uma sala para ele
         transmiteMensagem(cliente, new MensagemParaCliente(Acao.PROCURANDO_SALA));
         
         boolean sucesso;
         
+        //Verifica se há clientes na sala de espera.
         if (salaDeEspera.size() > 0) {
             Cliente adversario = salaDeEspera.get(0);
             salaDeEspera.remove(0);
@@ -84,20 +80,15 @@ public class Servidor implements AnalisadorDeMensagem {
             
             if (!sucesso && !sala.estaCheia())
                 salaDeEspera.add(0, adversario);
-            else {
+            else if (sucesso) {
                 transmiteMensagem(sala, new MensagemParaCliente(Acao.SALA_ENCONTRADA)); 
                 sala.iniciarJogo();
             }
         }
         else {
-            Jogo jogo = new JogoDaVelha();
             Sala sala = new Sala_JogoDaVelha(this);
-            cliente.setSala(sala);
-            sala.inserirCliente(cliente);
-            
+            sucesso = sala.inserirCliente(cliente);
             salaDeEspera.add(cliente);
-            
-            sucesso = true;
         }
         
         return sucesso;
@@ -135,7 +126,7 @@ public class Servidor implements AnalisadorDeMensagem {
      * @param receptores Clientes que devem receber a mensagem.
      */
     public void transmiteMensagem(ArrayList<Cliente> receptores, MensagemParaCliente mensagem, Cliente emissor) {
-        receptores.forEach((receptor) -> {
+        receptores.forEach(receptor -> {
             transmiteMensagem(receptor, mensagem, emissor);
         });
     }
@@ -170,6 +161,10 @@ public class Servidor implements AnalisadorDeMensagem {
         transmiteMensagem(sala.getJogadores(), mensagem, null);
     }
     
+    public void removeCliente (Cliente cliente) {
+        clientes.remove(cliente);
+    }
+    
     @Override
     public void trataMensagem(MensagemParaServidor mensagem) {
         Cliente emissor = (Cliente) mensagem.getRemetente();
@@ -198,7 +193,8 @@ public class Servidor implements AnalisadorDeMensagem {
             }
             
             case PROCURANDO_SALA -> {
-                TipoDeJogo tipoJogo = (TipoDeJogo) mensagem.getParametro();
+                //TipoDeJogo tipoJogo = (TipoDeJogo) mensagem.getParametro();
+                System.out.println(salaDeEspera);
                 procuraSala(emissor);
             }
             
@@ -208,9 +204,11 @@ public class Servidor implements AnalisadorDeMensagem {
             }
             
             case ABANDONO -> {
-                emissor.getSala().abandonar(emissor);
+                Sala sala = emissor.getSala();
+                if (sala != null) {
+                    sala.abandonar(emissor);
+                }
                 salaDeEspera.remove(emissor);
-                clientes.remove(emissor);
             }
             default -> System.out.println("Ação inválida.");
 
