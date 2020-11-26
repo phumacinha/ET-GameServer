@@ -1,9 +1,9 @@
 package servidor;
 
 import salas.Sala;
-import MensagemSocket.Acao;
-import MensagemSocket.MensagemParaCliente;
-import MensagemSocket.MensagemParaServidor;
+import mensagemsocket.Acao;
+import mensagemsocket.MensagemParaCliente;
+import mensagemsocket.MensagemParaServidor;
 import cliente.Cliente;
 import java.io.IOException;
 import java.net.ServerSocket;

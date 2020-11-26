@@ -1,8 +1,8 @@
 package cliente;
 
-import MensagemSocket.Acao;
-import MensagemSocket.MensagemParaCliente;
-import MensagemSocket.MensagemParaServidor;
+import mensagemsocket.Acao;
+import mensagemsocket.MensagemParaCliente;
+import mensagemsocket.MensagemParaServidor;
 import java.net.Socket;
 import java.io.IOException;
 import java.io.ObjectInputStream;

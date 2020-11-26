@@ -1,7 +1,7 @@
 package salas;
 
-import MensagemSocket.Acao;
-import MensagemSocket.MensagemParaCliente;
+import mensagemsocket.Acao;
+import mensagemsocket.MensagemParaCliente;
 import cliente.Cliente;
 import java.util.List;
 import jogos.JogoDaVelha;
