@@ -58,22 +58,30 @@ public final class JogoDaVelha extends Jogo {
             Integer resultado = null;
             
             switch (i) {
-                case 1 -> //primeira linha
+                case 1: //primeira linha
                     resultado = checaGanhador(0, 1, 2);
-                case 2 -> //segunda linha
+                    break;
+                case 2: //segunda linha
                     resultado = checaGanhador(3, 4, 5);
-                case 3 -> //terceira linha
+                    break;
+                case 3: //terceira linha
                     resultado = checaGanhador(6, 7, 8);
-                case 4 -> //primeira coluna
+                    break;
+                case 4: //primeira coluna
                     resultado = checaGanhador(0, 3, 6);
-                case 5 -> //segunda coluna
+                    break;
+                case 5: //segunda coluna
                     resultado = checaGanhador(1, 4, 7);
-                case 6 -> //terceira coluna
+                    break;
+                case 6: //terceira coluna
                     resultado = checaGanhador(2, 5, 8);
-                case 7 -> //diagonal principal
+                    break;
+                case 7: //diagonal principal
                     resultado = checaGanhador(0, 4, 8);
-                case 8 -> //diagonal secundaria
+                    break;
+                case 8: //diagonal secundaria
                     resultado = checaGanhador(2, 4, 6);
+                    break;
             }
             
             if (Integer.valueOf(3).equals(resultado)) {

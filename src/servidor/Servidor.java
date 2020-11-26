@@ -1,7 +1,6 @@
 package servidor;
 
 import salas.Sala;
-import AnalisadorDeMensagem.AnalisadorDeMensagem;
 import MensagemSocket.Acao;
 import MensagemSocket.MensagemParaCliente;
 import MensagemSocket.MensagemParaServidor;
@@ -182,45 +181,56 @@ public class Servidor {
         switch (mensagem.getAcao()) {
             // transmite para todos clientes do getServidor
             // a mensagem a ser transmitida deve ser o parametro da mensagem recebida
-            case BROADCAST -> transmiteMensagem(clientes, mensagem.getMensagemParaCliente());
+            case BROADCAST:
+                transmiteMensagem(clientes, mensagem.getMensagemParaCliente());
+                break;
             
             // broadcast exclusivo: transmite para todos clientes do getServidor
             // exceto para o cliente remetente
-            case BROADCAST_X -> transmiteMensagem(clientes, mensagem.getMensagemParaCliente(), emissor);
+            case BROADCAST_X:
+                transmiteMensagem(clientes, mensagem.getMensagemParaCliente(), emissor);
+                break;
             
             // transmite para todos clientes da sala
             // a mensagem a ser transmitida deve ser o parametro da mensagem recebida
-            case BROADCAST_SALA -> transmiteMensagem(emissor.getSala(), mensagem.getMensagemParaCliente());
+            case BROADCAST_SALA:
+                transmiteMensagem(emissor.getSala(), mensagem.getMensagemParaCliente());
+                break;
             
             // broadcast exclusivo dentro da sala: transmite para todos clientes da sala
             // exceto para o cliente remetente
-            case BROADCAST_X_SALA -> transmiteMensagem(emissor.getSala().getJogadores(), mensagem.getMensagemParaCliente(), emissor);
+            case BROADCAST_X_SALA:
+                transmiteMensagem(emissor.getSala().getJogadores(), mensagem.getMensagemParaCliente(), emissor);
+                break;
             
             // envia mensagem para todos os destinatarios especificados na mensagem
-            case MENSAGEM_COM_DESTINATARIO -> {
+            case MENSAGEM_COM_DESTINATARIO:
                 ArrayList<Cliente> destinatarios = (ArrayList<Cliente>) mensagem.getDestinatarios();
                 transmiteMensagem(destinatarios, mensagem.getMensagemParaCliente());
-            }
+                break;
             
-            case PROCURANDO_SALA -> {
+            case PROCURANDO_SALA:
                 //TipoDeJogo tipoJogo = (TipoDeJogo) mensagem.getParametro();
                 System.out.println(salaDeEspera);
                 procuraSala(emissor);
-            }
+                break;
             
-            case JOGADA -> {
+            case JOGADA:
                 Object parametros = mensagem.getParametro();
                 emissor.getSala().jogar(emissor, parametros);
-            }
+                break;
             
-            case ABANDONO -> {
+            case ABANDONO:
                 Sala sala = emissor.getSala();
                 if (sala != null) {
                     sala.abandonar(emissor);
                 }
                 salaDeEspera.remove(emissor);
-            }
-            default -> System.out.println("Ação inválida.");
+                break;
+                
+            default:
+                System.out.println("Ação inválida.");
+                break;
 
                 
         }
