@@ -1,11 +1,5 @@
 package servidor;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import salas.Sala;
 import AnalisadorDeMensagem.AnalisadorDeMensagem;
 import MensagemSocket.Acao;
@@ -18,16 +12,21 @@ import java.net.Socket;
 import java.util.ArrayList;
 import salas.Sala_JogoDaVelha;
 
-/**
+/**Classe servidor.
  *
- * @author raphael
+ * @author Raphael Winckler
+ * @author Pedro Antônio de Souza
  */
-public class Servidor implements AnalisadorDeMensagem {
+public class Servidor {
 
     private final ArrayList<Cliente> clientes;
     private final ArrayList<Cliente> salaDeEspera;
     private final ServerSocket serverSocket;
 
+    /**Construtor da classe.
+     * 
+     * @throws IOException 
+     */
     public Servidor() throws IOException {
         serverSocket = new ServerSocket(4545);
         
@@ -37,12 +36,16 @@ public class Servidor implements AnalisadorDeMensagem {
         iniciaServidor();
     }
     
+    /**Método para iniciar o servidor.
+     * O método fica em laço infinito esperando conexões.
+     */
     private void iniciaServidor () {
         //O serviço fica indefinidamente recebendo conexões
         while (true) {
             try{
                 //Espera por conexões de clientes
                 System.out.println("Esperando conexões ...");
+                // Recebe conexão.
                 Socket socket = serverSocket.accept();
                 System.out.println("Recebendo conexão de "+socket.toString());
                 
@@ -161,11 +164,18 @@ public class Servidor implements AnalisadorDeMensagem {
         transmiteMensagem(sala.getJogadores(), mensagem, null);
     }
     
+    /** Remove cliente da lista de clientes.
+     * 
+     * @param cliente Cliente a ser removido.
+     */
     public void removeCliente (Cliente cliente) {
         clientes.remove(cliente);
     }
     
-    @Override
+    /** Tratador de mensagens recebidas.
+     * 
+     * @param mensagem Mensagem recebida.
+     */
     public void trataMensagem(MensagemParaServidor mensagem) {
         Cliente emissor = (Cliente) mensagem.getRemetente();
         
@@ -216,6 +226,11 @@ public class Servidor implements AnalisadorDeMensagem {
         }
     }
     
+    /**Método que converte socket em string.
+     * 
+     * @param socket Socket a ser convertido.
+     * @return String no formato IP:PORTA.
+     */
     private String socketString (Socket socket) {
         String r = socket.getLocalAddress() + ":" + socket.getPort();
         return r;
