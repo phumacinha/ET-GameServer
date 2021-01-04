@@ -1,7 +1,7 @@
 package salas;
 
-import comunicacao.mensagens.Acao;
-import comunicacao.mensagens.MensagemParaCliente;
+import etgames.mensagens.Acao;
+import etgames.mensagens.MensagemParaCliente;
 import cliente.Cliente;
 import java.util.List;
 import jogos.JogoDaVelha;

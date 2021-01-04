@@ -2,10 +2,10 @@ package servidor;
 
 import salas.Sala;
 import cliente.Cliente;
-import comunicacao.mensagens.Acao;
-import comunicacao.mensagens.MensagemParaCliente;
-import comunicacao.mensagens.MensagemParaServidor;
-import comunicacao.jogos.TipoDeJogo;
+import etgames.mensagens.Acao;
+import etgames.mensagens.MensagemParaCliente;
+import etgames.mensagens.MensagemParaServidor;
+import etgames.jogos.TipoDeJogo;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

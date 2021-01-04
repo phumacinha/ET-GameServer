@@ -1,8 +1,8 @@
 package cliente;
 
-import comunicacao.mensagens.Acao;
-import comunicacao.mensagens.MensagemParaCliente;
-import comunicacao.mensagens.MensagemParaServidor;
+import etgames.mensagens.Acao;
+import etgames.mensagens.MensagemParaCliente;
+import etgames.mensagens.MensagemParaServidor;
 import java.net.Socket;
 import java.io.IOException;
 import java.io.ObjectInputStream;

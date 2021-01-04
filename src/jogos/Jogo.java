@@ -1,6 +1,6 @@
 package jogos;
 
-import comunicacao.jogos.TipoDeJogo;
+import etgames.jogos.TipoDeJogo;
 
 /** Classe abstrata para modelar jogos.
  *

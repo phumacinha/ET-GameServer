@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import cliente.Cliente;
 import java.util.Objects;
 import jogos.Jogo;
-import comunicacao.jogos.TipoDeJogo;
+import etgames.jogos.TipoDeJogo;
 import java.util.List;
 import servidor.Servidor;
 /**Classe abstrata e genérica para modelar a sala de um jogo.
