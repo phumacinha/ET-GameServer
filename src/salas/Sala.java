@@ -3,7 +3,10 @@ package salas;
 import java.util.ArrayList;
 
 import cliente.Cliente;
+import java.util.Objects;
 import jogos.Jogo;
+import comunicacao.jogos.TipoDeJogo;
+import java.util.List;
 import servidor.Servidor;
 /**Classe abstrata e genérica para modelar a sala de um jogo.
  *
@@ -11,28 +14,70 @@ import servidor.Servidor;
  * @param <J> Classe que herda de Jogo.
  */
 public abstract class Sala<J extends Jogo> {
-    protected final J jogo;
-    protected final ArrayList<Cliente> jogadores;
+    protected final J JOGO;
+    protected final List<Cliente> CLIENTES;
     protected Integer jogadorAtual;
-    protected final Servidor server;
+    protected final Servidor SERVER;
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 23 * hash + Objects.hashCode(this.JOGO);
+        hash = 23 * hash + Objects.hashCode(this.CLIENTES);
+        hash = 23 * hash + Objects.hashCode(this.SERVER);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Sala<?> other = (Sala<?>) obj;
+        if (!Objects.equals(this.JOGO, other.JOGO)) {
+            return false;
+        }
+        if (!Objects.equals(this.CLIENTES, other.CLIENTES)) {
+            return false;
+        }
+        if (!Objects.equals(this.SERVER, other.SERVER)) {
+            return false;
+        }
+        return true;
+    }
     
-    /**Construtor da classe.
+    
+    
+    /**Construtor protegido da classe.
      * 
      * @param jogo Jogo que pertence à sala.
      * @param server Servidor que a sala pertence.
      */
-    public Sala (J jogo, Servidor server) {
-        this.jogo = jogo;
-        this.server = server;
-        jogadores = new ArrayList<>(jogo.getMaxJogadores());
-    }
+    protected Sala (J jogo, Servidor server) {
+        this.JOGO = jogo;
+        this.SERVER = server;
+        this.CLIENTES = new ArrayList<>(jogo.getMaxJogadores());
+    }    
     
-    /** Getter do atributo jogo.
+    /**Cria novas instâncias de sala.
      * 
-     * @return Jogo.
+     * @param tipoDeJogo Tipo de jogo da sala.
+     * @param server Servidor que a sala pertence.
+     * @return Sala específica para o tipo de jogo.
      */
-    public J getJogo () {
-        return jogo;
+    public static Sala novaSala(TipoDeJogo tipoDeJogo, Servidor server) {
+        switch (tipoDeJogo) {
+            case JOGO_DA_VELHA:
+                return new Sala_JogoDaVelha(server);
+            default:
+                return null;
+        }
     }
     
     /** Getter do servidor.
@@ -40,15 +85,15 @@ public abstract class Sala<J extends Jogo> {
      * @return Servidor.
      */
     protected Servidor getServidor() {
-        return server;
+        return SERVER;
     }
     
     /** Getter da lista de jogadores.
      * 
      * @return ArrayList de jogadores que estão na sala.
      */
-    public ArrayList<Cliente> getJogadores () {
-        return jogadores;
+    public List<Cliente> getJogadores () {
+        return CLIENTES;
     }
     
     /** Getter turno.
@@ -73,7 +118,7 @@ public abstract class Sala<J extends Jogo> {
      * @return Inteiro que representa o id do jogador.
      */
     public int getClienteId (Cliente jogador) {
-        return jogadores.indexOf(jogador);
+        return CLIENTES.indexOf(jogador);
     }
     
     /** Método para verificar se a sala está cheia.
@@ -81,32 +126,25 @@ public abstract class Sala<J extends Jogo> {
      * @return True se estiver cheia, False caso contrário.
      */
     public boolean estaCheia() {
-        return jogadores.size() == jogo.getMaxJogadores();
+        return CLIENTES.size() == JOGO.getMaxJogadores();
     }
+    
+    /**Método para iniciar o jogo da sala.
+     * 
+     */
+    public abstract void iniciarJogo ();
+    
+    /** Método para finalizar o jogo da sala.
+     * 
+     */
+    public abstract void finalizarJogo ();
     
     /** Insere jogador na sala.
      * 
      * @param cliente Jogador a ser inserido.
      * @return True se a inserção ocorrer com sucesso, False caso contrário.
      */
-    public boolean inserirCliente (Cliente cliente) {
-        if (!estaCheia()) {
-            jogadores.add(cliente);
-            cliente.setSala(this);
-            return true;
-        }
-        return false;
-    }
-    
-    /**Método para iniciar o jogo da sala.
-     * 
-     */
-    public void iniciarJogo () {}
-    
-    /** Método para finalizar o jogo da sala.
-     * 
-     */
-    public void finalizarJogo () {}
+    public abstract boolean inserirCliente (Cliente cliente);
     
     /**Método abstrato para remover cliente da sala.
      * 
@@ -132,4 +170,12 @@ public abstract class Sala<J extends Jogo> {
      * @param jogador Jogador que abandonou a sala.
      */
     public abstract void abandonar(Cliente jogador);
+    
+    /** Getter do atributo tipoDeJogo.
+     * 
+     * @return Tipo de jogo.
+     */
+    public TipoDeJogo getTipoDeJogo () {
+        return JOGO.getTipoDeJogo();
+    }
 }

@@ -1,5 +1,6 @@
 package jogos;
 
+import comunicacao.jogos.TipoDeJogo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -14,7 +15,7 @@ public final class JogoDaVelha extends Jogo {
     
     /**Construtor da classe. */
     public JogoDaVelha() {
-        super("Jogo da Velha", 2, 2);
+        super("Jogo da Velha", TipoDeJogo.JOGO_DA_VELHA, 2, 2);
     }
     
     /**Getter do tabuleiro.

@@ -1,7 +1,7 @@
 package salas;
 
-import mensagemsocket.Acao;
-import mensagemsocket.MensagemParaCliente;
+import comunicacao.mensagens.Acao;
+import comunicacao.mensagens.MensagemParaCliente;
 import cliente.Cliente;
 import java.util.List;
 import jogos.JogoDaVelha;
@@ -26,20 +26,20 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
     @Override
     public void iniciarJogo () {
         // Inicia o jogo.
-        jogo.iniciar();
+        JOGO.iniciar();
         
         // Transmite mensagem mensagem para todos os jogadores com seus
         // respectivos identificadores.
         getJogadores().forEach(jogador -> {
-            server.transmiteMensagem(jogador, new MensagemParaCliente(Acao.SET_ID, getClienteId(jogador)));
+            SERVER.transmiteMensagem(jogador, new MensagemParaCliente(Acao.SET_ID, getClienteId(jogador)));
         });
         
         // Define turno.
-        setTurno(jogo.getTurno());
+        setTurno(JOGO.getTurno());
         
         // Envia mensagem para todos jogadores da sala com o jogador que irá
         // iniciar a partida.
-        server.transmiteMensagem(this, new MensagemParaCliente(Acao.NOVO_TURNO, getTurno()));
+        SERVER.transmiteMensagem(this, new MensagemParaCliente(Acao.NOVO_TURNO, getTurno()));
     }
     
     /** Sobrecarga do método finalizarJogo().
@@ -48,13 +48,28 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
     @Override
     public void finalizarJogo () {}
     
+    /** Insere jogador na sala.
+     * 
+     * @param cliente Jogador a ser inserido.
+     * @return True se a inserção ocorrer com sucesso, False caso contrário.
+     */
+    @Override
+    public boolean inserirCliente (Cliente cliente) {
+        if (!estaCheia()) {
+            CLIENTES.add(cliente);
+            cliente.setSala(this);
+            return true;
+        }
+        return false;
+    }
+    
     /** Método para remover cliente.
      * 
      * @param cliente Cliente a ser removido.
      */
     @Override
     public void removeCliente (Cliente cliente) {
-        jogadores.remove(cliente);
+        CLIENTES.remove(cliente);
         cliente.setSala(null);
         finalizarJogo();
     }
@@ -67,15 +82,15 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
     @Override
     protected Integer proximo() {
         // Calcula o id do próximo jogador.
-        Integer idProximo = (getTurno()+1)%jogadores.size();
+        Integer idProximo = (getTurno()+1)%CLIENTES.size();
         // Obtém objeto Cliente do proximo jogador.
-        Cliente proximo = jogadores.get(idProximo);
+        Cliente proximo = CLIENTES.get(idProximo);
         
-        int flag = jogadores.size();
+        int flag = CLIENTES.size();
         // Enquanto não encontrar próximo jogador, continua procurando.
-        while (proximo == null && proximo != jogadores.get(getTurno()) && flag > 0) {
-            idProximo = (idProximo+1)%jogadores.size();
-            proximo = jogadores.get(idProximo);
+        while (proximo == null && proximo != CLIENTES.get(getTurno()) && flag > 0) {
+            idProximo = (idProximo+1)%CLIENTES.size();
+            proximo = CLIENTES.get(idProximo);
             --flag;
         }
         
@@ -95,14 +110,14 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
      */
     @Override
     public void jogar(Cliente jogador, Object param) {
-        List<Integer> resultado = (List<Integer>) jogo.jogar(getTurno(), param);
+        List<Integer> resultado = (List<Integer>) JOGO.jogar(getTurno(), param);
         
         // Resultado é null se o jogador selecionar um campo já preenchido.
         // A interface é capaz de cuidar disso, porém há nova verificação no
         // servidor para evitar que jogares burlem.
         if (resultado == null) {
             MensagemParaCliente jogueNovamente = new MensagemParaCliente(Acao.JOGADA_INVALIDA, "Selecione um campo vazio!");
-            server.transmiteMensagem(jogador, jogueNovamente);
+            SERVER.transmiteMensagem(jogador, jogueNovamente);
         }
         // Caso seja selecionado um campo válido, continua.
         else {
@@ -111,7 +126,7 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
             //  > O campo (param) jogado
             //  > O resultado do jogo após a jogada
             List parametros = List.of(getTurno(), param, resultado);
-            server.transmiteMensagem(this, new MensagemParaCliente(Acao.JOGADA, parametros));
+            SERVER.transmiteMensagem(this, new MensagemParaCliente(Acao.JOGADA, parametros));
             
             // Verifica se o jogo não terminou.
             if (resultado.get(0) == -1) {
@@ -121,7 +136,7 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
                 if(proximo() == null) finalizarJogo();
                 else {
                     // Transmite mensagem de NOVO_TURNO para todos jogadores com o turno atualizado.
-                    server.transmiteMensagem(this, new MensagemParaCliente(Acao.NOVO_TURNO, getTurno()));
+                    SERVER.transmiteMensagem(this, new MensagemParaCliente(Acao.NOVO_TURNO, getTurno()));
                 }
             }
         }
@@ -133,12 +148,12 @@ public class Sala_JogoDaVelha extends Sala<JogoDaVelha> {
      */
     @Override
     public void abandonar(Cliente emissor) {
-        server.transmiteMensagem(this, new MensagemParaCliente(Acao.ABANDONO), emissor);
+        SERVER.transmiteMensagem(this, new MensagemParaCliente(Acao.ABANDONO), emissor);
         
-        jogadores.forEach(jogador -> {
-            jogador.setSala(null);
+        CLIENTES.forEach(cliente -> {
+            cliente.setSala(null);
         });
         
-        jogadores.clear();
+        CLIENTES.clear();
     }
 }
